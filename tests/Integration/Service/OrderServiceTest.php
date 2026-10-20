@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OrderService::class)]
+#[CoversClass(Order::class)]
 class OrderServiceTest extends TestCase
 {
     public function testShouldPersistCreatedOrder(): void
