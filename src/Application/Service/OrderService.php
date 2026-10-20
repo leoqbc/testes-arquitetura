@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DifferDev\Application\Service;
 
+use DifferDev\Application\DTO\OrderDTO;
 use DifferDev\Domain\Entity\Order;
+use DifferDev\Domain\Entity\OrderItem;
 use DifferDev\Domain\Repository\OrderRepositoryInterface;
-use Exception;
+use InvalidArgumentException;
 
 final readonly class OrderService
 {
@@ -13,19 +17,15 @@ final readonly class OrderService
     ) {
     }
 
+    /**
+     * @param OrderDTO $items
+     * @throws \Exception
+     */
     public function create(array $items): Order
     {
-        if (empty($items)) {
-            throw new Exception(
-                'Order must have items'
-            );
-        }
-
         $order = new Order($items);
 
-        if ($order->total() > 500) {
-            $order->applyDiscount(0.10);
-        }
+        $order->canBeCreated();
 
         $this->orderRepository->save($order);
 

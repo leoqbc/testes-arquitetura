@@ -1,48 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DifferDev\Domain\Entity;
+
+use Exception;
+use InvalidArgumentException;
 
 final class Order
 {
     public ?string $id = null;
 
-    private float $discount = 0.0;
+    public float $discount = 0.0;
 
-    public function __construct(
-        public readonly array $items,
-    ) {
+    /** @var list<OrderItem> */
+    private readonly array $items;
+
+    /**
+     * @param array<OrderItem> $items
+     * @throws Exception
+     */
+    public function __construct(array $items)
+    {
         if ($items === []) {
-            throw new \Exception('Order must have items');
+            throw new Exception('Order must have items');
         }
 
         foreach ($items as $index => $item) {
-            if (!is_array($item)) {
-                throw new \Exception("Order item '$index' must be an array");
-            }
-
-            if (!array_key_exists('price', $item)) {
-                throw new \Exception("Order item '$index' must have a price");
-            }
-
-            if (!array_key_exists('quantity', $item)) {
-                throw new \Exception("Order item '$index' must have a quantity");
-            }
-
-            $price = $item['price'];
-            $quantity = $item['quantity'];
-
-            if (
-                (!is_int($price) && !is_float($price))
-                || !is_finite((float) $price)
-                || $price < 0
-            ) {
-                throw new \Exception("Order item '$index' must have a non-negative numeric price");
-            }
-
-            if (!is_int($quantity) || $quantity < 1) {
-                throw new \Exception("Order item '$index' must have a positive integer quantity");
+            if (!$item instanceof OrderItem) {
+                throw new Exception(
+                    "Order item '$index' must be an instance of OrderItem"
+                );
             }
         }
+        $this->items = array_values($items);
+    }
+
+    /** @return list<OrderItem> */
+    public function items(): array
+    {
+        return $this->items;
     }
 
     public function total(): float
@@ -50,15 +47,19 @@ final class Order
         $subtotal = 0.0;
 
         foreach ($this->items as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+            $subtotal += $item->total();
         }
 
-        return $subtotal;
+        $discountCalculator = new DiscountCalculator($this->discount);
+
+        return $discountCalculator->calculate($subtotal);
     }
 
-    public function applyDiscount(float $param): float
+    public function canBeCreated(): void
     {
-        $discountCalculator = new DiscountCalculator(0.10);
-        return $discountCalculator->calculate($param);
+        // Regras de negócio aqui
+        if ($this->total() <= 0) {
+            throw new Exception('Order must have a total');
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+  "source": {
+    "directories": [
+      "src"
+    ],
+  },
+  "threads": "max",
+  "logs": {
+    "html": "infection/index.html"
+  },
+  "tmpDir": "tmp/infection",
+  "phpUnit": {
+    "configDir": "."
+  },
+  "mutators": {
+    "@default": true
+  },
+  "testFramework": "phpunit"
+}
