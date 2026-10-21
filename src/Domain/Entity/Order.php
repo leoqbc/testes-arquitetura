@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DifferDev\Domain\Entity;
 
 use Exception;
-use InvalidArgumentException;
 
 final class Order
 {

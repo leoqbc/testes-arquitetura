@@ -8,6 +8,7 @@ use DifferDev\Application\DTO\OrderDTO;
 use DifferDev\Domain\Entity\Order;
 use DifferDev\Domain\Entity\OrderItem;
 use DifferDev\Domain\Repository\OrderRepositoryInterface;
+use Exception;
 use InvalidArgumentException;
 
 final readonly class OrderService
@@ -18,8 +19,9 @@ final readonly class OrderService
     }
 
     /**
-     * @param OrderDTO $items
-     * @throws \Exception
+     * @param array $items
+     * @return Order
+     * @throws Exception
      */
     public function create(array $items): Order
     {

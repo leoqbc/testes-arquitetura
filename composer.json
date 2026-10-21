@@ -19,7 +19,8 @@
             "Composer\\Config::disableProcessTimeout",
             "phpunit-watcher watch < /dev/tty"
         ],
-        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage"
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage",
+        "infection": "infection"
     },
     "config": {
         "allow-plugins": {

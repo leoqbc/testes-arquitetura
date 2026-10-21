@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DiscountCalculator::class)]
 final class OrderTest extends TestCase
 {
+    /**
+     * @throws Exception
+     */
     public function testShouldCalculateTheTotalFromItsItems(): void
     {
         $order = new Order([
@@ -27,6 +30,9 @@ final class OrderTest extends TestCase
         $this->assertSame(275.0, $order->total());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testShouldExposeItemsWithoutAllowingTheCollectionToBeChanged(): void
     {
         $item = new OrderItem(100.0, 1);
@@ -56,6 +62,9 @@ final class OrderTest extends TestCase
         new Order([['price' => 100, 'quantity' => 1]]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testShouldApplyDiscountToTheOrderTotal(): void
     {
         $order = new Order([new OrderItem(100.0, 2)]);
@@ -65,6 +74,9 @@ final class OrderTest extends TestCase
         $this->assertSame(180.0, $order->total());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testShouldReplaceAPreviouslyAppliedDiscount(): void
     {
         $order = new Order([new OrderItem(100.0, 2)]);

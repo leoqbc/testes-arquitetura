@@ -9,6 +9,7 @@ use DifferDev\Domain\Entity\DiscountCalculator;
 use DifferDev\Domain\Entity\Order;
 use DifferDev\Domain\Entity\OrderItem;
 use DifferDev\Domain\Repository\OrderRepositoryInterface;
+use DifferDev\Infrastructure\Repository\InMemory\InMemoryOrderRepository;
 use Exception;
 use Mockery;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -19,33 +20,43 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Order::class)]
 #[CoversClass(OrderItem::class)]
 #[CoversClass(DiscountCalculator::class)]
+#[CoversClass(InMemoryOrderRepository::class)]
 final class OrderServiceTest extends TestCase
 {
+    protected OrderRepositoryInterface $orderRepository;
+
+    protected function setUp(): void
+    {
+        $this->orderRepository = new InMemoryOrderRepository();
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testShouldPersistCreatedOrder(): void
     {
-        $repository = Mockery::mock(OrderRepositoryInterface::class);
-        $repository
-            ->shouldReceive('save')
-            ->andReturnUsing(function (Order $order): void {
-                $order->id = '123';
-            })
-            ->once()
-        ;
+        $service = new OrderService($this->orderRepository);
 
-        $service = new OrderService($repository);
-
-        $order = $service->create([
+        $order1 = $service->create([
             new OrderItem(price: 100, quantity: 2)
         ]);
 
+        $order2 = $service->create([
+            new OrderItem(price: 200, quantity: 2)
+        ]);
+
+        $orderFound = $this->orderRepository->findById('1');
+
+        $this->assertEquals(2, $order2->id);
+
         $this->assertSame(
-            '123',
-            $order->id
+            '1',
+            $orderFound->id
         );
-        $this->assertCount(1, $order->items());
-        $this->assertInstanceOf(OrderItem::class, $order->items()[0]);
-        $this->assertSame(100.0, $order->items()[0]->price);
-        $this->assertSame(2, $order->items()[0]->quantity);
+        $this->assertCount(1, $orderFound->items());
+        $this->assertInstanceOf(OrderItem::class, $orderFound->items()[0]);
+        $this->assertSame(100.0, $orderFound->items()[0]->price);
+        $this->assertSame(2, $orderFound->items()[0]->quantity);
     }
 
     /**
@@ -69,20 +80,21 @@ final class OrderServiceTest extends TestCase
         array $items,
         float $expectedTotal,
     ): void {
-        $repository = Mockery::mock(OrderRepositoryInterface::class);
-        $repository->shouldReceive('save')->once();
-
-        $service = new OrderService($repository);
+        $service = new OrderService($this->orderRepository);
 
         $order = $service->create($items);
 
         $this->assertSame($expectedTotal, $order->total());
     }
 
-    /** @return iterable<string, array{array<mixed>}> */
+    /**
+     * TODO: Arrumar esses testes de erro(colocar o OrderItem)
+     * @return iterable<string, array{array<mixed>}>
+     */
     public static function invalidItems(): iterable
     {
         yield 'empty order' => [[]];
+        yield 'invalid total' => [[['price' => 0, 'quantity' => 1]]];
         yield 'missing price' => [[['quantity' => 1]]];
         yield 'missing quantity' => [[['price' => 100]]];
         yield 'non-numeric price' => [[['price' => '100', 'quantity' => 1]]];
@@ -94,12 +106,23 @@ final class OrderServiceTest extends TestCase
     {
         $this->expectException(Exception::class);
 
-        $repository = Mockery::mock(OrderRepositoryInterface::class);
-        $repository->shouldNotReceive('save');
-
-        $service = new OrderService($repository);
+        $service = new OrderService($this->orderRepository);
 
         $service->create($items);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testShouldTotalBeZero()
+    {
+        $this->expectExceptionMessage('Order must have a total');
+
+        $service = new OrderService($this->orderRepository);
+
+        $order = $service->create([
+            new OrderItem(price: 0, quantity: 1)
+        ]);
     }
 
     protected function tearDown(): void
