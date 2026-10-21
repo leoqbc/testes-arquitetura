@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DifferDev\Domain\Entity;
 
+use DifferDev\Application\Service\OrderService;
 use Exception;
 use InvalidArgumentException;
 
